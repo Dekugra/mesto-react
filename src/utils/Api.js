@@ -69,6 +69,15 @@ class Api {
       headers: this._headers,
     }).then((res) => this._checkResponse(res));
   }
+
+  changeLikeCardStatus(cardId, isLiked) {
+    return isLiked
+      ? fetch(`${this._url}/cards/${cardId}/likes`, {
+          method: 'PUT',
+          headers: this._headers,
+        }).then((res) => this._checkResponse(res))
+      : '';
+  }
 }
 
 const api = new Api({

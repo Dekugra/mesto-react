@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import {CurrentUserContext} from '../contexts/CurrentUserContext';
 import Footer from './Footer';
 import Header from './Header';
 import ImagePopup from './ImagePopup';
 import Input from './Input';
 import Main from './Main';
+import api from '../utils/Api';
 import PopupWithForm from './PopupWithForm';
 
 export default function App() {
@@ -15,12 +17,22 @@ export default function App() {
     link: '',
   });
   const [isImageShowOpen, setImageShowOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState({});
+
+  useEffect(() => {
+    api
+      .getUserInfo()
+      .then((res) => {
+        setCurrentUser(res);
+      })
+      .catch((err) => console.log('Ошибка. Запрос не выполнен', err));
+  }, []);
 
   const closeAllPopups = () => {
     setIsEditAvatarPopupOpen(false);
     setIsEditProfilePopupOpen(false);
     setIsAddPlacePopupOpen(false);
-    setImageShowOpen(false)
+    setImageShowOpen(false);
   };
 
   const handleEditAvatarClick = () => {
@@ -40,54 +52,56 @@ export default function App() {
   };
 
   return (
-    <div className="page">
-      <Header />
-      <Main
-        onClick={handleImageClick}
-        onEditProfile={handleEditProfileClick}
-        onAddPlace={handleAddPlaceClick}
-        onEditAvatar={handleEditAvatarClick}
-      />
-      <Footer />
+    <CurrentUserContext.Provider value={currentUser}>
+      <div className="page">
+        <Header />
+        <Main
+          onClick={handleImageClick}
+          onEditProfile={handleEditProfileClick}
+          onAddPlace={handleAddPlaceClick}
+          onEditAvatar={handleEditAvatarClick}
+        />
+        <Footer />
 
-      <PopupWithForm
-        isOpen={isEditProfilePopupOpen}
-        setOpen={setIsEditProfilePopupOpen}
-        onClose={closeAllPopups}
-        name="edit"
-        title="Редактировать профиль"
-        buttonContent="Сохранить"
-      >
-        <Input name="username" placeholder="Введите имя" maxlength="40" />
-        <Input name="about" placeholder="Кратко о себе" maxlength="200" />
-      </PopupWithForm>
-      <PopupWithForm
-        isOpen={isAddPlacePopupOpen}
-        setOpen={setIsAddPlacePopupOpen}
-        onClose={closeAllPopups}
-        name="addcard"
-        title="Новое место"
-        buttonContent="Создать"
-      >
-        <Input name="cardname" placeholder="Название" maxlength="30" />
-        <Input name="source" placeholder="Ссылка на картинку" maxlength="200" />
-      </PopupWithForm>
-      <PopupWithForm
-        isOpen={isEditAvatarPopupOpen}
-        setOpen={setIsEditAvatarPopupOpen}
-        onClose={closeAllPopups}
-        name="editavatar"
-        title="Обновить аватар"
-        buttonContent="Сохранить"
-      >
-        <Input name="userfoto" placeholder="Ссылка на фото пользователя" maxlength="200" />
-      </PopupWithForm>
-      <ImagePopup
-        card={selectedCard}
-        isOpen={isImageShowOpen}
-        setOpen={setImageShowOpen}
-        onClose={closeAllPopups}
-      />
-    </div>
+        <PopupWithForm
+          isOpen={isEditProfilePopupOpen}
+          setOpen={setIsEditProfilePopupOpen}
+          onClose={closeAllPopups}
+          name="edit"
+          title="Редактировать профиль"
+          buttonContent="Сохранить"
+        >
+          <Input name="username" placeholder="Введите имя" maxlength="40" />
+          <Input name="about" placeholder="Кратко о себе" maxlength="200" />
+        </PopupWithForm>
+        <PopupWithForm
+          isOpen={isAddPlacePopupOpen}
+          setOpen={setIsAddPlacePopupOpen}
+          onClose={closeAllPopups}
+          name="addcard"
+          title="Новое место"
+          buttonContent="Создать"
+        >
+          <Input name="cardname" placeholder="Название" maxlength="30" />
+          <Input name="source" placeholder="Ссылка на картинку" maxlength="200" />
+        </PopupWithForm>
+        <PopupWithForm
+          isOpen={isEditAvatarPopupOpen}
+          setOpen={setIsEditAvatarPopupOpen}
+          onClose={closeAllPopups}
+          name="editavatar"
+          title="Обновить аватар"
+          buttonContent="Сохранить"
+        >
+          <Input name="userfoto" placeholder="Ссылка на фото пользователя" maxlength="200" />
+        </PopupWithForm>
+        <ImagePopup
+          card={selectedCard}
+          isOpen={isImageShowOpen}
+          setOpen={setImageShowOpen}
+          onClose={closeAllPopups}
+        />
+      </div>
+    </CurrentUserContext.Provider>
   );
 }

@@ -1,25 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import Card from '../components/Card';
+import { CurrentUserContext } from '../contexts/CurrentUserContext';
 import api from '../utils/Api';
 
 function Main({ onEditProfile, onAddPlace, onEditAvatar, onClick }) {
-  const [userName, setUserName] = useState('');
-  const [userDescription, setUserDescription] = useState('');
-  const [userAvatar, setUserAvatar] = useState('');
-
   const [cards, setCards] = useState([]);
 
-  useEffect(() => {
-    api
-      .getUserInfo()
-      .then(({ avatar, name, about }) => {
-        setUserAvatar(avatar);
-        setUserName(name);
-        setUserDescription(about);
-      })
-      .catch((err) => console.log('Ошибка. Запрос не выполнен', err));
-    // finally в десятой проектной работе не используется, т.к. в чеклисте ничего не сказано про название кнопки попапа
-  }, []);
+  const currentUser = React.useContext(CurrentUserContext);
 
   useEffect(() => {
     api
@@ -27,16 +14,24 @@ function Main({ onEditProfile, onAddPlace, onEditAvatar, onClick }) {
       .then((res) => setCards(res))
       .catch((err) => console.log('Ошибка. Запрос не выполнен', err));
   }, []);
+//--------------------------
+  function handleCardLike(card) {
+    const isLiked = card.likes.some(i => i._id === currentUser._id);
 
+    api.changeLikeCardStatus(card._id, !isLiked).then((newCard) => {
+        setCards((state) => state.map((c) => c._id === card._id ? newCard : c));
+    });
+}
+//---------------------------
   const cardRender = cards.map((card) => {
-    return <Card card={card} onClick={onClick} key={card._id} />;
+    return <Card onCardLike={handleCardLike} card={card} onClick={onClick} key={card._id} />;
   });
 
   return (
     <>
       <main className="content">
         <section className="profile">
-          <img style={{ backgroundImage: `url("${userAvatar}")` }} className="profile__avatar" />
+          <img style={{ backgroundImage: `url("${currentUser.avatar}")` }} className="profile__avatar" alt=' '/>
           <button
             onClick={onEditAvatar}
             className="profile__avatar-editbutton"
@@ -46,7 +41,7 @@ function Main({ onEditProfile, onAddPlace, onEditAvatar, onClick }) {
           <div className="profile__info">
             <div className="profile__title-editbtn">
               <h1 className="profile__title" aria-label="Ваше имя">
-                {userName}
+                {currentUser.name}
               </h1>
               <button
                 onClick={onEditProfile}
@@ -56,7 +51,7 @@ function Main({ onEditProfile, onAddPlace, onEditAvatar, onClick }) {
               ></button>
             </div>
             <p className="profile__subtitle" aria-label="область компетенций">
-              {userDescription}
+              {currentUser.about}
             </p>
           </div>
           <button
